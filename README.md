@@ -25,7 +25,7 @@ With Edison and your computer on the same Wi-Fi network, it is also possible to 
     root@myedison.local's password:
     root@myedison:~#
 
-Replace `myedison` with the name of your Edison. When prompted for your password, use the password you created when configuring Edison.
+Replace `myedison` with the name of your Edison. When prompted for your password, use the password you created when configuring Edison. Same can be done in case of Ubilinux OS.
 
 ### Setting up hardware
 
@@ -40,37 +40,16 @@ External power (7-15 VDC) must be supplied to use Edison as a USB host. Refer to
 
 #### Configuring the package manager
 
-Edison's operating system is based off Yocto Linux, which uses `opkg` as its package manager. [AlexT's unofficial opkg repository](http://alextgalileo.altervista.org/edison-package-repo-configuration-instructions.html) is highly recommended for adding packages to Edison. It includes many useful packages, such as git and the UVC driver.
+Update Packages:
 
-To configure the repository, add the following lines to `/etc/opkg/base-feeds.conf`:
-
-    src/gz all http://repo.opkg.net/edison/repo/all
-    src/gz edison http://repo.opkg.net/edison/repo/edison
-    src/gz core2-32 http://repo.opkg.net/edison/repo/core2-32
-
-The configuration used in this demo is also provided for reference. If `/etc/opkg/base-feeds.conf` is empty, simply copy this file into `/etc/opkg/`.
-
-Update `opkg`:
-
-    opkg update
-
-If the update is successful, the output should look like this:
-
-    Downloading http://repo.opkg.net/edison/repo/all/Packages.gz.
-    Inflating http://repo.opkg.net/edison/repo/all/Packages.gz.
-    Updated list of available packages in /var/lib/opkg/all.
-    Downloading http://repo.opkg.net/edison/repo/edison/Packages.gz.
-    Inflating http://repo.opkg.net/edison/repo/edison/Packages.gz.
-    Updated list of available packages in /var/lib/opkg/edison.
-    Downloading http://repo.opkg.net/edison/repo/core2-32/Packages.gz.
-    Inflating http://repo.opkg.net/edison/repo/core2-32/Packages.gz.
-    Updated list of available packages in /var/lib/opkg/core2-32.
+    sudo apt-get update
+	sudo apt-get upgrade
 
 #### Cloning this repository onto Edison
 
 To install git:
 
-    opkg install git
+    sudo apt-get install git
 
 Then clone this repository using `git clone <git repo URL>`.
 
@@ -84,9 +63,7 @@ If the UVC driver is installed, the output should look something like this:
 
     /lib/modules/3.10.17-poky-edison+/kernel/drivers/media/usb/uvc
 
-If nothing is returned, the UVC driver needs to be installed:
-
-    opkg install kernel-module-uvcvideo
+If nothing is returned, the UVC driver needs to be installed.
 
 To make sure the UVC driver is loaded and the webcam is detected properly, plug in your webcam, then type `lsmod | grep uvc`:
 
@@ -121,22 +98,32 @@ If the download doesn't work, the release link may have changed. Check [here](ht
 Modify `wsUrl` in `web/client/index.html`. The section of the code looks like this:
 
     // CHANGE THIS TO THE APPROPRIATE WS ADDRESS
-    var wsUrl = 'ws://myedison.local:8084/';
+    var wsUrl = 'ws://192.168.43.144:9084/';
 
-Replace `myedison` with the name of your Edison.
+Replace `192.168.43.144` with the ip of your Edison.
 
 #### Running the Node.js server
 
 * Navigate to `web/server`.
-* Run the server by typing `node server.js`.
+* Run the server by typing `sudo node SmartCam.js`.
 
 The Node.js server should now be running. The console will look something like this:
 
-    WebSocket server listening on port 8084
-    HTTP server listening on port 8080
-    Listening for video stream on port 8082
-    Stream Connected: 127.0.0.1:52995 size: 320x240
+    WebSocket server listening on port 9084
+    HTTP server listening on port 9080
+    Listening for video stream on port 9082
+    Stream Connected: 127.0.0.1:52995 size: 640x480
 
 #### Viewing the video stream
 
-Open a browser window and navigate to `http://myedison.local:8080`, where `myedison` is the name of your Edison. You should now see the video stream from your webcam!
+Open a browser window and navigate to `http://192.168.43.144:9080`, where `192.168.43.144` is the ip of your Edison. You should now see the video stream from your webcam!
+
+#### Closing the Video Stream
+
+For closing the video stream, use 'CTRL+Z' and not 'CTRL+C'. 'CTRL+C' causes issues with closing the WebSocket port for ffmpeg, which requires a reboot of the system in order to use the video stream again. So the steps to close the stream effectively is:
+
+	'CTRL+Z'
+	ps alx
+	kill -9 <pid of sudo node SmartCam.js>
+
+You have effectively closed all the connections, and ready to reconnect hassle-free. In case of using 'Forever' node module, use appropriate commands to terminate the node process.
