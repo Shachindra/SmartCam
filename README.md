@@ -29,7 +29,7 @@ Replace `myedison` with the name of your Edison. When prompted for your password
 
 ### Setting up hardware
 
-Use a [UVC-compatible webcam](http://www.ideasonboard.org/uvc/). In my setup, I am using the [Creative Live! Cam Sync HD 720P](http://www.amazon.com/Creative-Live-Sync-720P-Webcam/dp/B0092QJRPC).
+Use a [UVC-compatible webcam](http://www.ideasonboard.org/uvc/). In my setup, I am using the [Logitech C270 HD Webcam](http://www.amazon.in/Logitech-C270-HD-Webcam-Black/dp/B008QS9J6Y/ref=sr_1_1).
 
 External power (7-15 VDC) must be supplied to use Edison as a USB host. Refer to the appropriate item below (based on the board you have) to power and connect a USB device:
 
