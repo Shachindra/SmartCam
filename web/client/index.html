@@ -1,47 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="initial-scale=1"/>
-  <title>Live Streaming</title>
-  <style type="text/css">
-    .container {
-      margin-top: 10%;
-      text-align: center;
-    }
+	<meta name="viewport" content="initial-scale=1"/>
+	<title>Smart Vision</title>
+	
+	<!-- <script src="https://code.jquery.com/jquery-1.11.3.js"></script> -->
+	<script src="/js/jsmpg.js"></script>
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/SmartVision.js"></script>
+	
+	<style type="text/css">
+		.container {
+			margin-top: 5%;
+			text-align: center;
+		}
 
-    #canvas-video {
-      width: 640px;
-      height: 480px;
-      border: 1px solid #ccc;
-    }
-  </style>
+		#canvas-video {
+			width: 640px;
+			height: 480px;
+			border: 1px solid #ccc;
+		}
+	</style>
 </head>
 <body>
-  <!-- Reference: https://github.com/phoboslab/jsmpeg/blob/master/stream-example.html -->
-
-  <div class="container">
-    <!--
-      The canvas size specified here is the "initial" internal resolution. jsmpeg will
-      change this internal resolution to whatever the source provides. The size the
-      canvas is displayed on the website is dictated by the CSS style.
-    -->
-    <canvas id="canvas-video" width="640" height="480"></canvas>
-  </div>
-
-  <script src="/jsmpg.js"></script>
-  <script type="text/javascript">
-    // CHANGE THIS TO THE APPROPRIATE WS ADDRESS
-    var wsUrl = 'ws://192.168.43.144:9084/';
-
-    // Show loading notice
-    var canvas = document.getElementById('canvas-video');
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#333';
-    ctx.fillText('Loading...', canvas.width/2-30, canvas.height/3);
-
-    // Start the player
-    var client = new WebSocket(wsUrl);
-    var player = new jsmpeg(client, { canvas:canvas });
-  </script>
+	<!-- Reference: https://github.com/phoboslab/jsmpeg/blob/master/stream-example.html -->
+	<div class="header" style="text-align: center;">
+		<h1>Smart Vision</h1>
+	</div>
+	<div class="container">
+		<!--
+		  The canvas size specified here is the "initial" internal resolution. jsmpeg will
+		  change this internal resolution to whatever the source provides. The size the
+		  canvas is displayed on the website is dictated by the CSS style.
+		-->
+		<canvas id="canvas-video" width="640" height="480"></canvas>
+	</div>
+	<br>
+	<div class="footer" style="text-align: center;">
+		<input type="button" id="getServerIP" value="Get Server IP Address">
+		<input type="button" id="getClientIP" value="Get Your IP Address">
+		<input type="button" id="getPic" value="Download Image">
+		<input type="button" id="getImageURL" value="Get Image URL">
+	</div>
 </body>
 </html>

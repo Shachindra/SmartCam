@@ -1,6 +1,6 @@
 # SmartCam
 A Web based IoT project which transforms a webcam into a IP Camera for surveillance systems using Intel Edison.
-
+This project doesn't need any configuration for the IP Address as it automatically detects the system's IP Address and works accordingly.
 SmartCam demonstrates live video streaming on Intel Edison using Node.js and WebSockets (inspired from the project edi-cam). Ongoing work includes Face Detection, Bar-code Detection, Image Recognition etc. on the video feed coming from the webcam. Furthur work may include Analytics and Complicated Image Processing.
 
 The Node.js server is responsible for:
@@ -43,7 +43,7 @@ External power (7-15 VDC) must be supplied to use Edison as a USB host. Refer to
 Update Packages:
 
     sudo apt-get update
-	sudo apt-get upgrade
+    sudo apt-get upgrade
 
 #### Cloning this repository onto Edison
 
@@ -93,15 +93,6 @@ If the download doesn't work, the release link may have changed. Check [here](ht
 
 ### Running the demo
 
-#### Updating the WebSocket address
-
-Modify `wsUrl` in `web/client/index.html`. The section of the code looks like this:
-
-    // CHANGE THIS TO THE APPROPRIATE WS ADDRESS
-    var wsUrl = 'ws://192.168.43.144:9084/';
-
-Replace `192.168.43.144` with the ip of your Edison.
-
 #### Running the Node.js server
 
 * Navigate to `web/server`.
@@ -109,6 +100,7 @@ Replace `192.168.43.144` with the ip of your Edison.
 
 The Node.js server should now be running. The console will look something like this:
 
+    Starting on System IP: 192.168.8.102
     WebSocket server listening on port 9084
     HTTP server listening on port 9080
     Listening for video stream on port 9082
@@ -116,11 +108,14 @@ The Node.js server should now be running. The console will look something like t
 
 #### Viewing the video stream
 
-Open a browser window and navigate to `http://192.168.43.144:9080`, where `192.168.43.144` is the ip of your Edison. You should now see the video stream from your webcam!
+Open a browser window and navigate to `http://192.168.8.102:9080`, where `192.168.8.102` is the ip of your Edison. You should now see the video stream from your webcam!
 
-#### Closing the Video Stream
+#### Closing the Video Stream on Ubilinux OS
 
-For closing the video stream, use 'CTRL+Z' and not 'CTRL+C'. 'CTRL+C' causes issues with closing the WebSocket port for ffmpeg, which requires a reboot of the system in order to use the video stream again. So the steps to close the stream effectively is:
+On Yocto, 'CTRL+C' can be used to close the node process and ffmpeg.
+
+But on Ubilinux, if using 'CTRL+C' causes issues in restarting the Node Server, then use 'CTRL+Z'. 'CTRL+C' causes issues with closing the WebSocket port for ffmpeg, which requires a reboot of the system in order to use the video stream again. So the steps to close the stream effectively is:
+('CTRL+C' event can also be handled from NodeJS for proper killing of PIDs)
 
 	'CTRL+Z'
 	ps alx

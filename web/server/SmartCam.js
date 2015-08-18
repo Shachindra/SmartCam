@@ -3,79 +3,98 @@ var childProcess = require('child_process')
   , express = require('express')
   , http = require('http')
   , morgan = require('morgan')
-  , ws = require('ws');
+  , ws = require('ws')
+  , fs = require('fs');
 
 // configuration files
 var configServer = require('./lib/config/serverConfig');
+var myIPFile = "../client/IPAddress.txt";
 
-// app parameters
-var app = express();
-app.set('port', configServer.httpPort);
-app.use(express.static(configServer.staticFolder));
-app.use(morgan('dev'));
+// Get and Save my Current IP Address
+var command = "ip addr | egrep -i \"inet.+wlan0\" | awk -F[\\ /] '{print $6}' | tr -d [:space:]"
+var command1 = "ip addr | egrep -i \"inet.+wlan0\" | awk -F[\\ /] '{print $6}' | tr -d \\n"
+var command2 = "hostname --all-ip-addresses";
+var command3 = "hostname -I";
 
-// serve index
-require('./lib/routes').serveIndex(app, configServer.staticFolder);
+var exec = require('child_process').exec;
+var sysIP = "localhost";
 
-// HTTP server
-http.createServer(app).listen(app.get('port'), function () {
-  console.log('HTTP server listening on port ' + app.get('port'));
-});
+function getMyIP(error, stdout, stderr) {
+	console.log("Starting on System IP: "+stdout);
+	sysIP = stdout;
+	
+	// app parameters for Streaming
+	var app = express();
+	app.set('port', configServer.httpPort);
+	app.use(express.static(configServer.staticFolder));
+	app.use(morgan('dev'));
 
-/// Video streaming section
-// Reference: https://github.com/phoboslab/jsmpeg/blob/master/stream-server.js
+	// serve index
+	require('./lib/routes').serveIndex(app, sysIP, configServer.staticFolder);
 
-var STREAM_MAGIC_BYTES = 'jsmp'; // Must be 4 bytes
-var width = 640;
-var height = 480;
+	// HTTP server
+	http.createServer(app).listen(app.get('port'), function () {
+	  console.log('HTTP server listening on port ' + app.get('port'));
+	});
 
-// WebSocket server
-var wsServer = new (ws.Server)({ port: configServer.wsPort });
-console.log('WebSocket server listening on port ' + configServer.wsPort);
+	/// Video streaming section
+	// Reference: https://github.com/phoboslab/jsmpeg/blob/master/stream-server.js
 
-wsServer.on('connection', function(socket) {
-  // Send magic bytes and video size to the newly connected socket
-  // struct { char magic[4]; unsigned short width, height;}
-  var streamHeader = new Buffer(8);
+	var STREAM_MAGIC_BYTES = 'jsmp'; // Must be 4 bytes
+	var width = 640;
+	var height = 480;
 
-  streamHeader.write(STREAM_MAGIC_BYTES);
-  streamHeader.writeUInt16BE(width, 4);
-  streamHeader.writeUInt16BE(height, 6);
-  socket.send(streamHeader, { binary: true });
+	// WebSocket server
+	var wsServer = new (ws.Server)({ port: configServer.wsPort });
+	console.log('WebSocket server listening on port ' + configServer.wsPort);
 
-  console.log('New WebSocket Connection (' + wsServer.clients.length + ' total)');
+	wsServer.on('connection', function(socket) {
+	  // Send magic bytes and video size to the newly connected socket
+	  // struct { char magic[4]; unsigned short width, height;}
+	  var streamHeader = new Buffer(8);
 
-  socket.on('close', function(code, message){
-    console.log('Disconnected WebSocket (' + wsServer.clients.length + ' total)');
-  });
-});
+	  streamHeader.write(STREAM_MAGIC_BYTES);
+	  streamHeader.writeUInt16BE(width, 4);
+	  streamHeader.writeUInt16BE(height, 6);
+	  socket.send(streamHeader, { binary: true });
 
-wsServer.broadcast = function(data, opts) {
-  for(var i in this.clients) {
-    if(this.clients[i].readyState == 1) {
-      this.clients[i].send(data, opts);
-    }
-    else {
-      console.log('Error: Client (' + i + ') not connected.');
-    }
-  }
-};
+	  console.log('New WebSocket Connection (' + wsServer.clients.length + ' total)');
 
-// HTTP server to accept incoming MPEG1 stream
-http.createServer(function (req, res) {
-  console.log(
-    'Stream Connected: ' + req.socket.remoteAddress +
-    ':' + req.socket.remotePort + ' size: ' + width + 'x' + height
-  );
+	  socket.on('close', function(code, message){
+		console.log('Disconnected WebSocket (' + wsServer.clients.length + ' total)');
+	  });
+	});
 
-  req.on('data', function (data) {
-    wsServer.broadcast(data, { binary: true });
-  });
-}).listen(configServer.streamPort, function () {
-  console.log('Listening for video stream on port ' + configServer.streamPort);
+	wsServer.broadcast = function(data, opts) {
+	  for(var i in this.clients) {
+		if(this.clients[i].readyState == 1) {
+		  this.clients[i].send(data, opts);
+		}
+		else {
+		  console.log('Error: Client (' + i + ') not connected.');
+		}
+	  }
+	};
 
-  // Run do_ffmpeg.sh from node                                                   
-  childProcess.exec('../../bin/do_ffmpeg.sh');
-});
+	// HTTP server to accept incoming MPEG1 stream
+	http.createServer(function (req, res) {
+	  console.log(
+		'Stream Connected: ' + req.socket.remoteAddress +
+		':' + req.socket.remotePort + ' size: ' + width + 'x' + height
+	  );
 
-module.exports.app = app;
+	  req.on('data', function (data) {
+		wsServer.broadcast(data, { binary: true });
+	  });
+	}).listen(configServer.streamPort, function () {
+	  console.log('Listening for video stream on port ' + configServer.streamPort);
+
+	  // Run do_ffmpeg.sh from node                                                   
+	  childProcess.exec('../../bin/do_ffmpeg.sh');
+	});
+
+	module.exports.app = app;
+
+}
+
+exec(command, getMyIP);
